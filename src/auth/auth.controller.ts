@@ -52,7 +52,6 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Invalid refresh token' })
   @ApiBearerAuth()
   async refresh(@Req() req) {
-    console.log(req);
     return this.authService.refreshTokens(req.user.id, req.user.refreshToken);
   }
 
