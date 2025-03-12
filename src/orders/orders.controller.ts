@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -17,11 +17,27 @@ import { User } from '@prisma/client';
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
+  @Post(':id/cancel')
+  @ApiOperation({ summary: 'Cancel order' })
+  @ApiResponse({ status: 200, description: 'Order is cancelled' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async cancelOrder(@Param('id') id: string) {
+    return this.ordersService.cancelOrder(id);
+  }
+
   @Get()
   @ApiOperation({ summary: 'Get user orders' })
   @ApiResponse({ status: 200, description: 'Orders retrieved successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async getUserOrders(@GetUser() user: User) {
     return this.ordersService.getUserOrders(user.id);
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Get user orders' })
+  @ApiResponse({ status: 200, description: 'Orders retrieved successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async getUserOrder(@Param('id') id: string) {
+    return this.ordersService.getUserOrderbyId(id);
   }
 }

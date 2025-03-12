@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { SearchProductsDto } from './dto/search-products.dto';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class ProductsService {
@@ -15,12 +16,13 @@ export class ProductsService {
       sort = 'createdAt_desc',
       minPrice,
       maxPrice,
+      isSale,
     } = searchParams;
 
     const skip = (page - 1) * limit;
     const [sortField, sortOrder] = sort.split('_');
 
-    const where: any = {
+    const where: Prisma.ProductWhereInput = {
       name: {
         contains: search,
         mode: 'insensitive',
@@ -41,6 +43,10 @@ export class ProductsService {
       if (maxPrice !== undefined) {
         where.price.lte = maxPrice;
       }
+    }
+
+    if (isSale) {
+      where.discount = { not: { equals: 0 } };
     }
 
     const [products, total] = await Promise.all([

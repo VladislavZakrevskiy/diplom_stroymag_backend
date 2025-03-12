@@ -8,7 +8,6 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
-import { UsersService } from '../users/users.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
@@ -19,7 +18,6 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
-    private readonly usersService: UsersService,
   ) {}
 
   async login(loginDto: LoginDto) {
@@ -50,7 +48,7 @@ export class AuthService {
         lastName: user.lastName,
         role: user.role,
       },
-      ...tokens,
+      tokens,
     };
   }
 
@@ -90,7 +88,7 @@ export class AuthService {
         lastName: user.lastName,
         role: user.role,
       },
-      ...tokens,
+      tokens,
     };
   }
 
@@ -115,7 +113,7 @@ export class AuthService {
     const tokens = await this.getTokens(user.id, user.email, user.role);
     await this.updateRefreshToken(user.id, tokens.refreshToken);
 
-    return tokens;
+    return { user, tokens };
   }
 
   async changePassword(userId: string, changePasswordDto: ChangePasswordDto) {

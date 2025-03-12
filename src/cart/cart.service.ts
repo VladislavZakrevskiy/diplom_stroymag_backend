@@ -73,7 +73,6 @@ export class CartService {
     });
 
     if (!cart) {
-      // Create cart if it doesn't exist
       return this.prisma.cart.create({
         data: {
           userId,
@@ -102,7 +101,6 @@ export class CartService {
       });
     }
 
-    // Check if item already exists in cart
     const existingCartItem = await this.prisma.cartItem.findUnique({
       where: {
         cartId_productId: {
@@ -113,8 +111,7 @@ export class CartService {
     });
 
     if (existingCartItem) {
-      // Update quantity if item already exists
-      return this.prisma.cartItem.update({
+      await this.prisma.cartItem.update({
         where: { id: existingCartItem.id },
         data: { quantity: existingCartItem.quantity + quantity },
         include: {
@@ -129,10 +126,16 @@ export class CartService {
           },
         },
       });
+
+      return await this.prisma.cart.findUnique({
+        where: { userId },
+        include: {
+          items: { include: { product: true }, orderBy: { createdAt: 'desc' } },
+        },
+      });
     }
 
-    // Add new item to cart
-    return this.prisma.cartItem.create({
+    await this.prisma.cartItem.create({
       data: {
         cartId: cart.id,
         productId,
@@ -150,6 +153,13 @@ export class CartService {
         },
       },
     });
+
+    return await this.prisma.cart.findUnique({
+      where: { userId },
+      include: {
+        items: { include: { product: true }, orderBy: { createdAt: 'desc' } },
+      },
+    });
   }
 
   async updateCartItem(
@@ -162,6 +172,9 @@ export class CartService {
     // Get user's cart
     const cart = await this.prisma.cart.findUnique({
       where: { userId },
+      include: {
+        items: { include: { product: true }, orderBy: { createdAt: 'desc' } },
+      },
     });
 
     if (!cart) {
@@ -183,7 +196,7 @@ export class CartService {
     }
 
     // Update cart item quantity
-    return this.prisma.cartItem.update({
+    await this.prisma.cartItem.update({
       where: { id: cartItem.id },
       data: { quantity },
       include: {
@@ -198,12 +211,22 @@ export class CartService {
         },
       },
     });
+
+    return await this.prisma.cart.findUnique({
+      where: { userId },
+      include: {
+        items: { include: { product: true }, orderBy: { createdAt: 'desc' } },
+      },
+    });
   }
 
   async removeItemFromCart(userId: string, productId: string) {
     // Get user's cart
     const cart = await this.prisma.cart.findUnique({
       where: { userId },
+      include: {
+        items: { include: { product: true }, orderBy: { createdAt: 'desc' } },
+      },
     });
 
     if (!cart) {
@@ -229,6 +252,11 @@ export class CartService {
       where: { id: cartItem.id },
     });
 
-    return { message: 'Item removed from cart successfully' };
+    return await this.prisma.cart.findUnique({
+      where: { userId },
+      include: {
+        items: { include: { product: true }, orderBy: { createdAt: 'desc' } },
+      },
+    });
   }
 }
